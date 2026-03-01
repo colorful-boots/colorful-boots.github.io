@@ -1,0 +1,43 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+permissions:
+  id-token: write
+  actions: write
+  pages: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses:  actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: build_output
+          key: gallery-build-${{ hashFiles('gallery/**') }}
+          restore-keys: |
+            gallery-build-
+      - name: Build gallery
+        run: docker run -v "$(pwd):/work" ghcr.io/thumbsup/thumbsup /bin/sh -c "cd /work/ && thumbsup --config config.json"
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'build_output'
+          name: gh-pages
+      - name: Deploy to Github Pages
+        uses: actions/deploy-pages@v4
+        with:
+          artifact_name: gh-pages
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Delete artifact
+        uses: geekyeggo/delete-artifact@v4
+        with:
+          name: gh-pages

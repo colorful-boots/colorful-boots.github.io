@@ -1,1 +1,3 @@
-# colorful-boots.github.io
+# Colorful Boots
+
+A collection of colorful rain boots.
